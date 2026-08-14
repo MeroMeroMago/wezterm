@@ -6,4 +6,10 @@ ar = "x86_64-w64-mingw32-gcc-ar"
 # and openssl-src does that based on the crt-static feature being
 # enabled for the target, so let's turn that on here.
 [target.x86_64-pc-windows-msvc]
+# crt-static (above) makes the vendored libgit2-sys build (pulled in by
+# wezterm-version) stop auto-linking advapi32.lib on this MSVC toolset,
+# which fails at link time with 15 unresolved externals (OpenProcessToken,
+# RegOpenKeyExW, CryptAcquireContextA, etc. -- all advapi32 exports).
+# house-mirror finding, 2026-08-14: do not remove this without re-testing
+# a full `cargo build --all --release`.
 rustflags = "-C target-feature=+crt-static -C link-arg=/DEFAULTLIB:advapi32.lib"
