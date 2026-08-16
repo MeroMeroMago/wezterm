@@ -735,6 +735,22 @@ impl Reconnectable {
                 let mut cmd = std::process::Command::new(&argv[0]);
                 cmd.args(&argv[1..]);
 
+                // The server we are about to start daemonizes and outlives
+                // us. On Windows it must not end up holding our stdio: if
+                // we were launched with our stdout/stderr connected to
+                // pipes, whoever is reading those pipes would never see
+                // EOF, and would hang long after we exited. Both halves
+                // below are required -- see `stdio_inherit` for why
+                // setting the child's stdio alone is measurably not enough.
+                #[cfg(windows)]
+                let _no_inherit = crate::stdio_inherit::NoInheritStdio::new();
+                #[cfg(windows)]
+                {
+                    cmd.stdin(std::process::Stdio::null());
+                    cmd.stdout(std::process::Stdio::null());
+                    cmd.stderr(std::process::Stdio::null());
+                }
+
                 #[cfg(unix)]
                 if let Some(mask) = umask::UmaskSaver::saved_umask() {
                     unsafe {

@@ -40,4 +40,13 @@ wezterm-term = { path = "../term", features=["use_serde"] }
 uds_windows = "1.0"
 winapi = { version = "0.3", features = [
     "winuser",
+    # Used by src/stdio_inherit.rs. These were previously reaching this
+    # crate only via Cargo's feature unification with other winapi users in
+    # the graph; naming them here makes the dependency explicit so a change
+    # elsewhere cannot silently break this crate's build.
+    "handleapi",
+    "processenv",
+    "processthreadsapi",
+    "winbase",
+    "winnt",
 ]}
